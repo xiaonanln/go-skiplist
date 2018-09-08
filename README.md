@@ -1,7 +1,7 @@
 # go-skiplist
 Skip List implementation in Golang
 
-SkipList has almost same interface as red-black tree in [github.com/petar/GoLLRB/llrb](https://github.com/petar/GoLLRB/llrb).
+SkipList has almost same interface as red-black tree in [github.com/petar/GoLLRB/llrb](https://github.com/petar/GoLLRB).
 
 **Thanks to petar, I used LLRB test files directly, and most test cases just work without modification**
 
