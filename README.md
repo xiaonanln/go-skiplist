@@ -28,7 +28,7 @@ BenchmarkDelete-8      	 3000000	       502 ns/op
 BenchmarkDeleteMin-8   	50000000	        40.3 ns/op
 ```
 
-**SkipList of level 16:**  
+**SkipList of level 24:**  
 ```bash
 goos: windows
 goarch: amd64
