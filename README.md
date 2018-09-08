@@ -5,16 +5,17 @@ SkipList has almost same interface as red-black tree in [github.com/petar/GoLLRB
 
 **Thanks to petar, I used LLRB test files directly, and most test cases just work without modification**
 
-SkipList outperforms LLRB significantly.
+Current implementation of SkipList has comparable performance with LLRB, except for `DeleteMin` 
+which SkipList outperforms LLRB dramatically.
 
 **LLRB:**
 ```bash
 goos: windows
 goarch: amd64
 pkg: github.com/petar/GoLLRB/llrb
-BenchmarkInsert-8      	 1000000	      1852 ns/op
-BenchmarkDelete-8      	 1000000	      1918 ns/op
-BenchmarkDeleteMin-8   	 1000000	      1338 ns/op
+BenchmarkInsert-8      	 2000000	       915 ns/op
+BenchmarkDelete-8      	 2000000	       946 ns/op
+BenchmarkDeleteMin-8   	 3000000	       585 ns/op
 ```
 
 **SkipList of level 16:**  
