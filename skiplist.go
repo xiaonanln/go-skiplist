@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	validate        = true // turn on for debug only
+	validate        = false // turn on for debug only
 	DefaultMaxLevel = 32
 )
 
@@ -210,7 +210,7 @@ func (sl *SkipList) DeleteMin() Item {
 }
 
 func (sl *SkipList) randomLevel() int {
-	return int((random() % uint32(sl.maxLevel))) + 1
+	return randomLevel(sl.maxLevel)
 }
 
 func (sl *SkipList) validate() {

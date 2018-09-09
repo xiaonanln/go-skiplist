@@ -1,6 +1,8 @@
 package skiplist
 
-import "time"
+import (
+	"time"
+)
 
 var (
 	seed uint32
@@ -27,4 +29,30 @@ func random() uint32 {
 		seed -= M
 	}
 	return seed
+}
+
+//func randomLevel(maxLevel int) int {
+//	l := 31 - int(math.Log2(float64(random()%2147483647)))
+//	if l == 0 {
+//		l = 1
+//	} else if l > maxLevel {
+//		l = maxLevel
+//	}
+//	return l
+//}
+//
+//func randomLevel2(maxLevel int) int {
+//	l := 1
+//	for l < maxLevel && rand.Float32() < 0.5 {
+//		l++
+//	}
+//	return l
+//}
+
+func randomLevel(maxLevel int) int {
+	l := 1
+	for l < maxLevel && random()%100 < 50 {
+		l++
+	}
+	return l
 }
