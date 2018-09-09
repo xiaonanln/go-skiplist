@@ -8,41 +8,27 @@ import (
 )
 
 const (
-	TestSize = 100000
+	TestSize = 1000000
 )
 
-func TestLLRB(t *testing.T) {
+func TestFuzzyLLRB(t *testing.T) {
 	rand.Seed(1)
 	tree := llrb.New()
-	vals := []int{}
 	for i := 0; i < TestSize; i++ {
-		v := rand.Int()
-		tree.ReplaceOrInsert(llrb.Int(v))
-		vals = append(vals, v)
-	}
-	//for tree.Len() > 0 {
-	//	tree.DeleteMin()
-	//}
-	for _, v := range vals {
-		tree.Has(llrb.Int(v))
-		tree.Delete(llrb.Int(v))
+		v := rand.Intn(100000)
+		if tree.Delete(llrb.Int(v)) == nil {
+			tree.ReplaceOrInsert(llrb.Int(v))
+		}
 	}
 }
 
-func TestSkipList(t *testing.T) {
+func TestFuzzySkipList(t *testing.T) {
 	rand.Seed(1)
 	tree := New()
-	vals := []int{}
 	for i := 0; i < TestSize; i++ {
-		v := rand.Int()
-		tree.ReplaceOrInsert(Int(v))
-		vals = append(vals, v)
-	}
-	//for tree.Len() > 0 {
-	//	tree.DeleteMin()
-	//}
-	for _, v := range vals {
-		tree.Has(Int(v))
-		tree.Delete(Int(v))
+		v := rand.Intn(100000)
+		if tree.Delete(Int(v)) == nil {
+			tree.ReplaceOrInsert(Int(v))
+		}
 	}
 }
