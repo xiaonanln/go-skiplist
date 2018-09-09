@@ -1,5 +1,5 @@
 # go-skiplist
-Skip List implementation in Golang. It is not ready!
+Skip List implementation in Golang.
 
 ## Installation
 `go get github.com/xiaonanln/go-skiplist`
