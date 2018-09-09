@@ -13,6 +13,9 @@ func TestNew(t *testing.T) {
 	if sl.MaxLevel() != DefaultMaxLevel {
 		t.Fatalf("bad max level")
 	}
+	if sl.Level() != 1 {
+		t.Fatalf("bad level")
+	}
 }
 
 func TestNewMaxLevel(t *testing.T) {

@@ -121,6 +121,13 @@ func (sl *SkipList) InsertNoReplace(item Item) {
 	// always insert after p without check if n equals to item
 	// insert before n
 	newLevel := sl.randomLevel()
+	if newLevel > sl.level {
+		newLevel = sl.level + 1
+		sl.level = newLevel
+		sl.head.forward = append(sl.head.forward, sl.tail)
+		sl.tail.forward = append(sl.tail.forward, nil)
+		update = append(update, sl.head)
+	}
 	newNode := newNode(item, newLevel)
 	for i := 0; i < newLevel; i++ {
 		p := update[i]
@@ -138,6 +145,11 @@ func (sl *SkipList) Len() int {
 
 // MaxLevel returns the max level of the skiplist
 func (sl *SkipList) MaxLevel() int {
+	return sl.maxLevel
+}
+
+// Level returns the current level of the skiplist
+func (sl *SkipList) Level() int {
 	return sl.level
 }
 
