@@ -33,10 +33,10 @@ BenchmarkDelete-32         	 3000000	       547 ns/op
 BenchmarkDeleteMin-32      	50000000	        27.4 ns/op
 ```
 
-LLRB current outperforms SkipList in fuzzy tests.
+**LLRB current outperforms SkipList in fuzzy tests.**
 
 
-**LLRB fuzzy test: `0.37s`**
+LLRB fuzzy test: `0.37s`
 
 
-**SkipList fuzzy test: `0.5s`**
+SkipList fuzzy test: `0.5s`
