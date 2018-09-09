@@ -31,19 +31,19 @@ func random() uint32 {
 	return seed
 }
 
-//func randomLevel(maxLevel int) int {
+//func randomLevel(level int) int {
 //	l := 31 - int(math.Log2(float64(random()%2147483647)))
 //	if l == 0 {
 //		l = 1
-//	} else if l > maxLevel {
-//		l = maxLevel
+//	} else if l > level {
+//		l = level
 //	}
 //	return l
 //}
 //
-//func randomLevel2(maxLevel int) int {
+//func randomLevel2(level int) int {
 //	l := 1
-//	for l < maxLevel && rand.Float32() < 0.5 {
+//	for l < level && rand.Float32() < 0.5 {
 //		l++
 //	}
 //	return l

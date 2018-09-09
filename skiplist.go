@@ -37,12 +37,13 @@ func newNode(item Item, level int) *Node {
 
 type SkipList struct {
 	maxLevel int
+	level    int
 	len      int
 	head     *Node
 	tail     *Node
 }
 
-// New creates a new SkipList with max maxLevel = 32, which should be enough for most cases.
+// New creates a new SkipList with max level = 32, which should be enough for most cases.
 func New() *SkipList {
 	return NewMaxLevel(DefaultMaxLevel)
 }
@@ -50,10 +51,11 @@ func New() *SkipList {
 func NewMaxLevel(maxLevel int) *SkipList {
 	sl := &SkipList{
 		maxLevel: maxLevel,
-		head:     newNode(ninf, maxLevel),
-		tail:     newNode(pinf, maxLevel),
+		level:    1,
+		head:     newNode(ninf, 1),
+		tail:     newNode(pinf, 1),
 	}
-	for i := 0; i < maxLevel; i++ {
+	for i := 0; i < sl.level; i++ {
 		sl.head.forward[i] = sl.tail
 		//sl.tail.forward[i] = nil
 	}
@@ -64,9 +66,9 @@ func NewMaxLevel(maxLevel int) *SkipList {
 // ReplaceOrInsert inserts item into the skiplist. If an existing
 // element has the same order, it is removed from the skiplist and returned.
 func (sl *SkipList) ReplaceOrInsert(item Item) Item {
-	update := make([]*Node, sl.maxLevel)
+	update := make([]*Node, sl.level)
 	p := sl.head
-	for level := sl.maxLevel - 1; level >= 0; level-- {
+	for level := sl.level - 1; level >= 0; level-- {
 		for less(p.forward[level].Item, item) {
 			p = p.forward[level]
 		}
@@ -78,6 +80,14 @@ func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 	if less(item, n.Item) {
 		// insert before n
 		newLevel := sl.randomLevel()
+		if newLevel > sl.level {
+			newLevel = sl.level + 1
+			sl.level = newLevel
+			sl.head.forward = append(sl.head.forward, sl.tail)
+			sl.tail.forward = append(sl.tail.forward, nil)
+			update = append(update, sl.head)
+		}
+
 		newNode := newNode(item, newLevel)
 		for i := 0; i < newLevel; i++ {
 			p := update[i]
@@ -99,9 +109,9 @@ func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 // InsertNoReplace inserts item into the skiplist. If an existing
 // element has the same order, both elements remain in the skiplist.
 func (sl *SkipList) InsertNoReplace(item Item) {
-	update := make([]*Node, sl.maxLevel)
+	update := make([]*Node, sl.level)
 	p := sl.head
-	for level := sl.maxLevel - 1; level >= 0; level-- {
+	for level := sl.level - 1; level >= 0; level-- {
 		for less(p.forward[level].Item, item) {
 			p = p.forward[level]
 		}
@@ -126,15 +136,15 @@ func (sl *SkipList) Len() int {
 	return sl.len
 }
 
-// MaxLevel returns the max maxLevel of the skiplist
+// MaxLevel returns the max level of the skiplist
 func (sl *SkipList) MaxLevel() int {
-	return sl.maxLevel
+	return sl.level
 }
 
 // Has returns true if the skiplist contains an element whose order is the same as that of key.
 func (sl *SkipList) Has(item Item) bool {
 	p := sl.head
-	for level := sl.maxLevel - 1; level >= 0; level-- {
+	for level := sl.level - 1; level >= 0; level-- {
 		for less(p.forward[level].Item, item) {
 			p = p.forward[level]
 		}
@@ -146,9 +156,9 @@ func (sl *SkipList) Has(item Item) bool {
 // Delete deletes an item from the skiplist whose key equals key.
 // The deleted item is return, otherwise nil is returned.
 func (sl *SkipList) Delete(item Item) Item {
-	update := make([]*Node, sl.maxLevel)
+	update := make([]*Node, sl.level)
 	p := sl.head
-	for level := sl.maxLevel - 1; level >= 0; level-- {
+	for level := sl.level - 1; level >= 0; level-- {
 		for less(p.forward[level].Item, item) {
 			p = p.forward[level]
 		}
@@ -218,12 +228,12 @@ func (sl *SkipList) validate() {
 		return
 	}
 
-	if len(sl.head.forward) != sl.maxLevel {
-		panic(fmt.Errorf("wrong head.forward maxLevel: %d, should be %d", len(sl.head.forward), sl.maxLevel))
+	if len(sl.head.forward) != sl.level {
+		panic(fmt.Errorf("wrong head.forward level: %d, should be %d", len(sl.head.forward), sl.level))
 	}
 
-	if len(sl.tail.forward) != sl.maxLevel {
-		panic(fmt.Errorf("wrong tail.forward maxLevel"))
+	if len(sl.tail.forward) != sl.level {
+		panic(fmt.Errorf("wrong tail.forward level"))
 	}
 
 	if sl.head.Item != ninf {
@@ -234,7 +244,7 @@ func (sl *SkipList) validate() {
 		panic(fmt.Errorf("tail is not pinf"))
 	}
 
-	for i := 0; i < sl.maxLevel; i++ {
+	for i := 0; i < sl.level; i++ {
 		pv := sl.head.Item
 		levelSize := 0
 		for p := sl.head.forward[i]; p != nil; p = p.forward[i] {
@@ -245,7 +255,7 @@ func (sl *SkipList) validate() {
 			levelSize++
 		}
 		if pv != pinf {
-			panic(fmt.Errorf("maxLevel %d not ends with tail", i))
+			panic(fmt.Errorf("level %d not ends with tail", i))
 		}
 		if i == 0 {
 			if levelSize != sl.len+1 {

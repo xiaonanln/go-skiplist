@@ -13,7 +13,7 @@ func (sl *SkipList) Ascend(iterator ItemIterator) {
 
 func (sl *SkipList) AscendRange(greaterOrEqual, lessThan Item, iterator ItemIterator) {
 	p := sl.head
-	for level := sl.maxLevel - 1; level >= 0; level-- {
+	for level := sl.level - 1; level >= 0; level-- {
 		for less(p.forward[level].Item, greaterOrEqual) {
 			p = p.forward[level]
 		}
@@ -30,7 +30,7 @@ func (sl *SkipList) AscendRange(greaterOrEqual, lessThan Item, iterator ItemIter
 // pivot in ascending order. It will stop whenever the iterator returns false.
 func (sl *SkipList) AscendGreaterOrEqual(pivot Item, iterator ItemIterator) {
 	p := sl.head
-	for level := sl.maxLevel - 1; level >= 0; level-- {
+	for level := sl.level - 1; level >= 0; level-- {
 		for less(p.forward[level].Item, pivot) {
 			p = p.forward[level]
 		}

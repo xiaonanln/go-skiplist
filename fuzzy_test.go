@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	TestSize = 300000
+	TestSize = 1000000
 )
 
 func TestLLRB(t *testing.T) {
