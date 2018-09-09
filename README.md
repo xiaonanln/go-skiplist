@@ -15,30 +15,28 @@ which SkipList outperforms LLRB dramatically.
 
 **LLRB:**
 ```bash
-goos: windows
+goos: linux
 goarch: amd64
 pkg: github.com/petar/GoLLRB/llrb
-BenchmarkInsert-8      	 2000000	       915 ns/op
-BenchmarkDelete-8      	 2000000	       946 ns/op
-BenchmarkDeleteMin-8   	 3000000	       585 ns/op
+BenchmarkInsert-32       	 1000000	      1269 ns/op
+BenchmarkDelete-32       	 1000000	      1261 ns/op
+BenchmarkDeleteMin-32    	 2000000	       800 ns/op
 ```
 
-**SkipList of level 16:**  
+**SkipList:**  
 ```bash
-goos: windows
+goos: linux
 goarch: amd64
 pkg: github.com/xiaonanln/go-skiplist
-BenchmarkInsert-8      	 2000000	       728 ns/op
-BenchmarkDelete-8      	 3000000	       502 ns/op
-BenchmarkDeleteMin-8   	50000000	        40.3 ns/op
+BenchmarkInsert-32         	 2000000	       773 ns/op
+BenchmarkDelete-32         	 3000000	       547 ns/op
+BenchmarkDeleteMin-32      	50000000	        27.4 ns/op
 ```
 
-**SkipList of level 24:**  
-```bash
-goos: windows
-goarch: amd64
-pkg: github.com/xiaonanln/go-skiplist
-BenchmarkInsert-8      	 2000000	      1140 ns/op
-BenchmarkDelete-8      	 2000000	       607 ns/op
-BenchmarkDeleteMin-8   	30000000	        49.1 ns/op
-```
+LLRB current outperforms SkipList in fuzzy tests.
+
+
+**LLRB fuzzy test: `0.37s`**
+
+
+**SkipList fuzzy test: `0.5s`**
