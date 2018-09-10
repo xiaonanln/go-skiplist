@@ -2,14 +2,12 @@ package skiplist
 
 import (
 	"fmt"
-	"sync"
 )
 
 const (
 	validate = false // turn on for debug only
 	// DefaultMaxLevel is the default max level. 32 should be large enough for most cases.
 	DefaultMaxLevel = 32
-	nodePoolsNum    = 32 // number of pools
 )
 
 type Item interface {
@@ -31,46 +29,16 @@ type Node struct {
 	forward []*Node
 }
 
-var (
-	nodePools []sync.Pool
-)
-
-func init() {
-	for level := 1; level <= nodePoolsNum; level++ {
-		lv := level
-		pool := sync.Pool{New: func() interface{} {
-			return &Node{
-				Item:    nil,
-				forward: make([]*Node, lv),
-			}
-		}}
-		nodePools = append(nodePools, pool)
-	}
-}
-
 func newNode(item Item, level int) (node *Node) {
-	if level <= nodePoolsNum {
-		node = nodePools[level-1].Get().(*Node)
-		node.Item = item
-	} else {
 		node = &Node{
 			Item:    item,
 			forward: make([]*Node, level),
 		}
-	}
 	return
 }
 
 func releaseNode(node *Node) (item Item) {
 	item = node.Item
-	lv := len(node.forward)
-	if lv <= nodePoolsNum {
-		node.Item = nil
-		for i := 0; i < lv; i++ {
-			node.forward[i] = nil
-		}
-		nodePools[lv-1].Put(node)
-	}
 	return
 }
 
