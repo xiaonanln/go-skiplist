@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	cpuTestSize = 100000
+	cpuTestSize = 10000000
 )
 
 func TestCPULLRB(t *testing.T) {
