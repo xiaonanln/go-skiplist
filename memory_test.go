@@ -1,6 +1,7 @@
 package skiplist
 
 import (
+	"math/rand"
 	"os"
 	"runtime/pprof"
 	"testing"
@@ -36,4 +37,13 @@ func TestMemoryLLRB(t *testing.T) {
 	}
 
 	pprof.WriteHeapProfile(fd)
+}
+
+func TestMemoryLeak(t *testing.T) {
+	t.SkipNow()
+	tree := New()
+	for {
+		tree.Delete(Int(rand.Intn(10000)))
+		tree.ReplaceOrInsert(Int(rand.Intn(10000)))
+	}
 }
