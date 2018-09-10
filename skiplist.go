@@ -2,6 +2,7 @@ package skiplist
 
 import (
 	"fmt"
+	"unsafe"
 )
 
 const (
@@ -26,16 +27,25 @@ func less(x, y Item) bool {
 
 type Node struct {
 	Item
-	forward []*Node
 }
 
-func newNode(item Item, level int) (node *Node) {
-	node = &Node{
-		Item:    item,
-		forward: make([]*Node, level),
-	}
-	return
+func get_forward(node *Node, level int) *Node {
+	return *(**Node)(unsafe.Pointer(uintptr(unsafe.Pointer(node)) + unsafe.Sizeof(Node{}) + uintptr(level)*unsafe.Sizeof((*Node)(nil))))
 }
+
+func set_forward(node *Node, level int, fn *Node) {
+	*(**Node)(unsafe.Pointer(uintptr(unsafe.Pointer(node)) + unsafe.Sizeof(Node{}) + uintptr(level)*unsafe.Sizeof((*Node)(nil)))) = fn
+}
+
+//
+//func _newNodeOld(item Item, level int) (node *Node) {
+//	node = &Node{
+//		Item:    item,
+//		forward: make([]*Node, level),
+//	}
+//	return
+//}
+//
 
 func releaseNode(node *Node) (item Item) {
 	item = node.Item
@@ -55,10 +65,16 @@ func New() *SkipList {
 }
 
 func NewMaxLevel(maxLevel int) *SkipList {
+	if maxLevel > MaxLevelLimit {
+		maxLevel = MaxLevelLimit
+	} else if maxLevel < 1 {
+		panic(fmt.Errorf("maxLevel must in range %d~%d", 1, MaxLevelLimit))
+	}
+
 	sl := &SkipList{
 		maxLevel: maxLevel,
 		level:    1,
-		head:     newNode(ninf, 1),
+		head:     allocNode(ninf, maxLevel),
 	}
 	sl.validate()
 	return sl
@@ -71,11 +87,11 @@ func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 	p := sl.head
 	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		n := p.forward[level]
+		n := get_forward(p, level)
 		for n != end {
 			if n.Item.Less(item) {
 				p = n
-				n = p.forward[level]
+				n = get_forward(p, level)
 			} else {
 				end = n
 				break
@@ -85,22 +101,22 @@ func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 	}
 
 	// insert after p
-	n := p.forward[0]
+	n := get_forward(p, 0)
 	if n == nil || item.Less(n.Item) {
 		// insert before n
 		newLevel := sl.randomLevel()
 		if newLevel > sl.level {
 			newLevel = sl.level + 1
 			sl.level = newLevel
-			sl.head.forward = append(sl.head.forward, nil)
+			//sl.head.forward = append(sl.head.forward, nil)
 			update = append(update, sl.head)
 		}
 
-		newNode := newNode(item, newLevel)
+		newNode := allocNode(item, newLevel)
 		for i := 0; i < newLevel; i++ {
 			p := update[i]
-			newNode.forward[i] = p.forward[i]
-			p.forward[i] = newNode
+			set_forward(newNode, i, get_forward(p, i))
+			set_forward(p, i, newNode)
 		}
 		sl.len++
 		sl.validate()
@@ -121,11 +137,11 @@ func (sl *SkipList) InsertNoReplace(item Item) {
 	p := sl.head
 	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		n := p.forward[level]
+		n := get_forward(p, level)
 		for n != end {
 			if n.Item.Less(item) {
 				p = n
-				n = p.forward[level]
+				n = get_forward(p, level)
 			} else {
 				end = n
 				break
@@ -140,14 +156,14 @@ func (sl *SkipList) InsertNoReplace(item Item) {
 	if newLevel > sl.level {
 		newLevel = sl.level + 1
 		sl.level = newLevel
-		sl.head.forward = append(sl.head.forward, nil)
+		//sl.head.forward = append(sl.head.forward, nil)
 		update = append(update, sl.head)
 	}
-	newNode := newNode(item, newLevel)
+	newNode := allocNode(item, newLevel)
 	for i := 0; i < newLevel; i++ {
 		p := update[i]
-		newNode.forward[i] = p.forward[i]
-		p.forward[i] = newNode
+		set_forward(newNode, i, get_forward(p, i))
+		set_forward(p, i, newNode)
 	}
 	sl.len++
 	sl.validate()
@@ -173,11 +189,11 @@ func (sl *SkipList) Has(item Item) bool {
 	p := sl.head
 	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		n := p.forward[level]
+		n := get_forward(p, level)
 		for n != end {
 			if n.Item.Less(item) {
 				p = n
-				n = p.forward[level]
+				n = get_forward(p, level)
 			} else {
 				end = n
 				break
@@ -185,7 +201,7 @@ func (sl *SkipList) Has(item Item) bool {
 		}
 	}
 
-	n := p.forward[0]
+	n := get_forward(p, 0)
 	return n != nil && !item.Less(n.Item)
 }
 
@@ -196,11 +212,11 @@ func (sl *SkipList) Delete(item Item) Item {
 	p := sl.head
 	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		n := p.forward[level]
+		n := get_forward(p, level)
 		for n != end {
 			if n.Item.Less(item) {
 				p = n
-				n = p.forward[level]
+				n = get_forward(p, level)
 			} else {
 				end = n
 				break
@@ -210,22 +226,15 @@ func (sl *SkipList) Delete(item Item) Item {
 	}
 
 	// delete n if n matches
-	n := p.forward[0]
+	n := get_forward(p, 0)
 	if n == nil || item.Less(n.Item) {
 		// item not found
 		return nil
 	}
 
 	// n is the item to delete
-	level := len(n.forward)
-	for i := 0; i < level; i++ {
-		if validate {
-			if update[i].forward[i] != n {
-				panic(fmt.Errorf("wrong forward pointer"))
-			}
-		}
-
-		update[i].forward[i] = n.forward[i]
+	for i := 0; i < sl.level && get_forward(update[i], i) == n; i++ {
+		set_forward(update[i], i, get_forward(n, i))
 	}
 	sl.len--
 
@@ -242,20 +251,15 @@ func (sl *SkipList) DeleteMin() Item {
 
 	// find the min item
 	head := sl.head
-	n := head.forward[0]
+	n := get_forward(head, 0)
 	if validate {
 		if n == nil {
 			panic(fmt.Errorf("bad skiplist"))
 		}
 	}
 
-	level := len(n.forward)
-	for i := 0; i < level; i++ {
-		if validate && head.forward[i] != n {
-			panic(fmt.Errorf("bad skiplist"))
-		}
-
-		head.forward[i] = n.forward[i]
+	for i := 0; i < sl.level && get_forward(head, i) == n; i++ {
+		set_forward(head, i, get_forward(n, i))
 	}
 
 	sl.len--
@@ -272,10 +276,6 @@ func (sl *SkipList) validate() {
 		return
 	}
 
-	if len(sl.head.forward) != sl.level {
-		panic(fmt.Errorf("wrong head.forward level: %d, should be %d", len(sl.head.forward), sl.level))
-	}
-
 	if sl.head.Item != ninf {
 		panic(fmt.Errorf("head is not ninf"))
 	}
@@ -283,7 +283,7 @@ func (sl *SkipList) validate() {
 	for i := 0; i < sl.level; i++ {
 		pv := sl.head.Item
 		levelSize := 0
-		for p := sl.head.forward[i]; p != nil; p = p.forward[i] {
+		for p := get_forward(sl.head, i); p != nil; p = get_forward(p, i) {
 			if less(p.Item, pv) {
 				panic(fmt.Errorf("wrong order: %#v > %#v", pv, p.Item))
 			}
