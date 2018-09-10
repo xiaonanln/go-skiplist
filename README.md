@@ -1,5 +1,5 @@
-# go-skiplist
-[![GoDoc](https://godoc.org/github.com/xiaonanln/go-skiplist?status.png)](https://godoc.org/github.com/xiaonanln/go-skiplist)
+# go-skiplist [![GoDoc](https://godoc.org/github.com/xiaonanln/go-skiplist?status.png)](https://godoc.org/github.com/xiaonanln/go-skiplist)
+
 
 Skip List implementation in Golang.
 
