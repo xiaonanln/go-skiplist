@@ -2,11 +2,14 @@ package skiplist
 
 import (
 	"fmt"
+	"sync"
 )
 
 const (
-	validate        = false // turn on for debug only
+	validate = false // turn on for debug only
+	// DefaultMaxLevel is the default max level. 32 should be large enough for most cases.
 	DefaultMaxLevel = 32
+	nodePoolsNum    = 32 // number of pools
 )
 
 type Item interface {
@@ -28,11 +31,47 @@ type Node struct {
 	forward []*Node
 }
 
-func newNode(item Item, level int) *Node {
-	return &Node{
-		Item:    item,
-		forward: make([]*Node, level),
+var (
+	nodePools []sync.Pool
+)
+
+func init() {
+	for level := 1; level <= nodePoolsNum; level++ {
+		lv := level
+		pool := sync.Pool{New: func() interface{} {
+			return &Node{
+				Item:    nil,
+				forward: make([]*Node, lv),
+			}
+		}}
+		nodePools = append(nodePools, pool)
 	}
+}
+
+func newNode(item Item, level int) (node *Node) {
+	if level <= nodePoolsNum {
+		node = nodePools[level-1].Get().(*Node)
+		node.Item = item
+	} else {
+		node = &Node{
+			Item:    item,
+			forward: make([]*Node, level),
+		}
+	}
+	return
+}
+
+func releaseNode(node *Node) (item Item) {
+	item = node.Item
+	lv := len(node.forward)
+	if lv <= nodePoolsNum {
+		node.Item = nil
+		for i := 0; i < lv; i++ {
+			node.forward[i] = nil
+		}
+		nodePools[lv-1].Put(node)
+	}
+	return
 }
 
 type SkipList struct {
@@ -57,7 +96,6 @@ func NewMaxLevel(maxLevel int) *SkipList {
 	}
 	for i := 0; i < sl.level; i++ {
 		sl.head.forward[i] = sl.tail
-		//sl.tail.forward[i] = nil
 	}
 	sl.validate()
 	return sl
@@ -198,7 +236,7 @@ func (sl *SkipList) Delete(item Item) Item {
 	sl.len--
 
 	sl.validate()
-	return n.Item
+	return releaseNode(n)
 }
 
 // DeleteMin deletes the minimum element in the skiplist and returns the
@@ -228,7 +266,7 @@ func (sl *SkipList) DeleteMin() Item {
 
 	sl.len--
 	sl.validate()
-	return n.Item
+	return releaseNode(n)
 }
 
 func (sl *SkipList) randomLevel() int {
