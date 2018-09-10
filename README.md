@@ -35,7 +35,7 @@ BenchmarkDeleteMin-32      	50000000	        27.4 ns/op
 
 ## RAM consumption
 
-With significant optimization overhead, the current RAM consumption of SkipList `(p=0.25)` is more or less same with LLRB. 
+With significant optimization effort, the current RAM consumption of SkipList `(p=0.25)` is more or less same with LLRB. 
 
 **LLRB:**
 ```
