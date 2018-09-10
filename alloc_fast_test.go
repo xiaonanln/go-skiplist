@@ -1,6 +1,9 @@
 package skiplist
 
-import "testing"
+import (
+	"testing"
+	"unsafe"
+)
 
 func BenchmarkAlloc(b *testing.B) {
 	for i := 0; i < b.N; i++ {
@@ -40,4 +43,13 @@ func BenchmarkAllocFast(b *testing.B) {
 		newNodeFast(nil, 3)
 		newNodeFast(nil, 4)
 	}
+}
+
+func BenchmarkAllocUnsafeOffsetof(b *testing.B) {
+	var a uintptr
+	for i := 0; i < b.N; i++ {
+		a += unsafe.Offsetof(l1n{}.array)
+	}
+	b.StopTimer()
+	println(a)
 }
