@@ -6,21 +6,23 @@ import (
 	"runtime/pprof"
 	"testing"
 
+	handu_skiplist "github.com/huandu/skiplist"
 	"github.com/petar/GoLLRB/llrb"
 )
 
 const (
-	memoryTestSize = 1000000
+	memoryTestSize = 10000000
 )
 
 func TestMemorySkipList(t *testing.T) {
-	fd, err := os.OpenFile("skiplist.heap.pprof", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	fd, err := os.OpenFile("sl.heap.pprof", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
 	tree := New()
 	for i := 0; i < memoryTestSize; i++ {
-		tree.ReplaceOrInsert(Int(i))
+		item := slIntInt{i, i}
+		tree.ReplaceOrInsert(item)
 	}
 	pprof.WriteHeapProfile(fd)
 }
@@ -33,7 +35,22 @@ func TestMemoryLLRB(t *testing.T) {
 
 	tree := llrb.New()
 	for i := 0; i < memoryTestSize; i++ {
-		tree.ReplaceOrInsert(llrb.Int(i))
+		item := llrbIntInt{i, i}
+		tree.ReplaceOrInsert(item)
+	}
+
+	pprof.WriteHeapProfile(fd)
+}
+
+func TestMemoryHanduSkipList(t *testing.T) {
+	fd, err := os.OpenFile("hdsl.heap.pprof", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	tree := handu_skiplist.New(handu_skiplist.Int)
+	for i := 0; i < memoryTestSize; i++ {
+		tree.Set(i, i)
 	}
 
 	pprof.WriteHeapProfile(fd)

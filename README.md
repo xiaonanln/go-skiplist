@@ -35,6 +35,16 @@ BenchmarkDelete-32         	 3000000	       547 ns/op
 BenchmarkDeleteMin-32      	50000000	        27.4 ns/op
 ```
 
+**Fuzzy Tests**
+```
+=== RUN   TestFuzzyLLRB
+--- PASS: TestFuzzyLLRB (19.90s)
+=== RUN   TestFuzzySkipList
+--- PASS: TestFuzzySkipList (12.03s)
+=== RUN   TestFuzzyHangduSkipList from github.com/huandu/skiplist
+--- PASS: TestFuzzyHangduSkipList (12.68s)
+```
+
 ## RAM consumption
 
 With significant optimization effort, the current RAM consumption of SkipList `(p=0.25)` is more or less same with LLRB. 
