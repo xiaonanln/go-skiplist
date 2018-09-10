@@ -2,10 +2,12 @@ package skiplist
 
 import (
 	"fmt"
+	"unsafe"
 )
 
 const (
-	validate        = false // turn on for debug only
+	validate = false // turn on for debug only, will run very slowly
+	// DefaultMaxLevel is the default max level. 32 should be large enough for most cases.
 	DefaultMaxLevel = 32
 )
 
@@ -25,14 +27,29 @@ func less(x, y Item) bool {
 
 type Node struct {
 	Item
-	forward []*Node
 }
 
-func newNode(item Item, level int) *Node {
-	return &Node{
-		Item:    item,
-		forward: make([]*Node, level),
-	}
+func get_forward(node *Node, level int) *Node {
+	return *(**Node)(unsafe.Pointer(uintptr(unsafe.Pointer(node)) + unsafe.Sizeof(Node{}) + uintptr(level)*unsafe.Sizeof((*Node)(nil))))
+}
+
+func set_forward(node *Node, level int, fn *Node) {
+	*(**Node)(unsafe.Pointer(uintptr(unsafe.Pointer(node)) + unsafe.Sizeof(Node{}) + uintptr(level)*unsafe.Sizeof((*Node)(nil)))) = fn
+}
+
+//
+//func _newNodeOld(item Item, level int) (node *Node) {
+//	node = &Node{
+//		Item:    item,
+//		forward: make([]*Node, level),
+//	}
+//	return
+//}
+//
+
+func releaseNode(node *Node) (item Item) {
+	item = node.Item
+	return
 }
 
 type SkipList struct {
@@ -40,7 +57,6 @@ type SkipList struct {
 	level    int
 	len      int
 	head     *Node
-	tail     *Node
 }
 
 // New creates a new SkipList with max level = 32, which should be enough for most cases.
@@ -49,15 +65,16 @@ func New() *SkipList {
 }
 
 func NewMaxLevel(maxLevel int) *SkipList {
+	if maxLevel > MaxLevelLimit {
+		maxLevel = MaxLevelLimit
+	} else if maxLevel < 1 {
+		panic(fmt.Errorf("maxLevel must in range %d~%d", 1, MaxLevelLimit))
+	}
+
 	sl := &SkipList{
 		maxLevel: maxLevel,
 		level:    1,
-		head:     newNode(ninf, 1),
-		tail:     newNode(pinf, 1),
-	}
-	for i := 0; i < sl.level; i++ {
-		sl.head.forward[i] = sl.tail
-		//sl.tail.forward[i] = nil
+		head:     allocNode(ninf, maxLevel),
 	}
 	sl.validate()
 	return sl
@@ -68,31 +85,38 @@ func NewMaxLevel(maxLevel int) *SkipList {
 func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 	update := make([]*Node, sl.level)
 	p := sl.head
+	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		for less(p.forward[level].Item, item) {
-			p = p.forward[level]
+		n := get_forward(p, level)
+		for n != end {
+			if n.Item.Less(item) {
+				p = n
+				n = get_forward(p, level)
+			} else {
+				end = n
+				break
+			}
 		}
 		update[level] = p
 	}
 
 	// insert after p
-	n := p.forward[0]
-	if less(item, n.Item) {
+	n := get_forward(p, 0)
+	if n == nil || item.Less(n.Item) {
 		// insert before n
 		newLevel := sl.randomLevel()
 		if newLevel > sl.level {
 			newLevel = sl.level + 1
 			sl.level = newLevel
-			sl.head.forward = append(sl.head.forward, sl.tail)
-			sl.tail.forward = append(sl.tail.forward, nil)
+			//sl.head.forward = append(sl.head.forward, nil)
 			update = append(update, sl.head)
 		}
 
-		newNode := newNode(item, newLevel)
+		newNode := allocNode(item, newLevel)
 		for i := 0; i < newLevel; i++ {
 			p := update[i]
-			newNode.forward[i] = p.forward[i]
-			p.forward[i] = newNode
+			set_forward(newNode, i, get_forward(p, i))
+			set_forward(p, i, newNode)
 		}
 		sl.len++
 		sl.validate()
@@ -111,9 +135,17 @@ func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 func (sl *SkipList) InsertNoReplace(item Item) {
 	update := make([]*Node, sl.level)
 	p := sl.head
+	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		for less(p.forward[level].Item, item) {
-			p = p.forward[level]
+		n := get_forward(p, level)
+		for n != end {
+			if n.Item.Less(item) {
+				p = n
+				n = get_forward(p, level)
+			} else {
+				end = n
+				break
+			}
 		}
 		update[level] = p
 	}
@@ -124,15 +156,14 @@ func (sl *SkipList) InsertNoReplace(item Item) {
 	if newLevel > sl.level {
 		newLevel = sl.level + 1
 		sl.level = newLevel
-		sl.head.forward = append(sl.head.forward, sl.tail)
-		sl.tail.forward = append(sl.tail.forward, nil)
+		//sl.head.forward = append(sl.head.forward, nil)
 		update = append(update, sl.head)
 	}
-	newNode := newNode(item, newLevel)
+	newNode := allocNode(item, newLevel)
 	for i := 0; i < newLevel; i++ {
 		p := update[i]
-		newNode.forward[i] = p.forward[i]
-		p.forward[i] = newNode
+		set_forward(newNode, i, get_forward(p, i))
+		set_forward(p, i, newNode)
 	}
 	sl.len++
 	sl.validate()
@@ -156,13 +187,22 @@ func (sl *SkipList) Level() int {
 // Has returns true if the skiplist contains an element whose order is the same as that of key.
 func (sl *SkipList) Has(item Item) bool {
 	p := sl.head
+	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		for less(p.forward[level].Item, item) {
-			p = p.forward[level]
+		n := get_forward(p, level)
+		for n != end {
+			if n.Item.Less(item) {
+				p = n
+				n = get_forward(p, level)
+			} else {
+				end = n
+				break
+			}
 		}
 	}
-	n := p.forward[0]
-	return !less(item, n.Item)
+
+	n := get_forward(p, 0)
+	return n != nil && !item.Less(n.Item)
 }
 
 // Delete deletes an item from the skiplist whose key equals key.
@@ -170,35 +210,36 @@ func (sl *SkipList) Has(item Item) bool {
 func (sl *SkipList) Delete(item Item) Item {
 	update := make([]*Node, sl.level)
 	p := sl.head
+	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		for less(p.forward[level].Item, item) {
-			p = p.forward[level]
+		n := get_forward(p, level)
+		for n != end {
+			if n.Item.Less(item) {
+				p = n
+				n = get_forward(p, level)
+			} else {
+				end = n
+				break
+			}
 		}
 		update[level] = p
 	}
 
 	// delete n if n matches
-	n := p.forward[0]
-	if less(item, n.Item) {
+	n := get_forward(p, 0)
+	if n == nil || item.Less(n.Item) {
 		// item not found
 		return nil
 	}
 
 	// n is the item to delete
-	level := len(n.forward)
-	for i := 0; i < level; i++ {
-		if validate {
-			if update[i].forward[i] != n {
-				panic(fmt.Errorf("wrong forward pointer"))
-			}
-		}
-
-		update[i].forward[i] = n.forward[i]
+	for i := 0; i < sl.level && get_forward(update[i], i) == n; i++ {
+		set_forward(update[i], i, get_forward(n, i))
 	}
 	sl.len--
 
 	sl.validate()
-	return n.Item
+	return releaseNode(n)
 }
 
 // DeleteMin deletes the minimum element in the skiplist and returns the
@@ -210,25 +251,20 @@ func (sl *SkipList) DeleteMin() Item {
 
 	// find the min item
 	head := sl.head
-	n := head.forward[0]
+	n := get_forward(head, 0)
 	if validate {
-		if n == sl.tail {
+		if n == nil {
 			panic(fmt.Errorf("bad skiplist"))
 		}
 	}
 
-	level := len(n.forward)
-	for i := 0; i < level; i++ {
-		if validate && head.forward[i] != n {
-			panic(fmt.Errorf("bad skiplist"))
-		}
-
-		head.forward[i] = n.forward[i]
+	for i := 0; i < sl.level && get_forward(head, i) == n; i++ {
+		set_forward(head, i, get_forward(n, i))
 	}
 
 	sl.len--
 	sl.validate()
-	return n.Item
+	return releaseNode(n)
 }
 
 func (sl *SkipList) randomLevel() int {
@@ -240,42 +276,27 @@ func (sl *SkipList) validate() {
 		return
 	}
 
-	if len(sl.head.forward) != sl.level {
-		panic(fmt.Errorf("wrong head.forward level: %d, should be %d", len(sl.head.forward), sl.level))
-	}
-
-	if len(sl.tail.forward) != sl.level {
-		panic(fmt.Errorf("wrong tail.forward level"))
-	}
-
 	if sl.head.Item != ninf {
 		panic(fmt.Errorf("head is not ninf"))
-	}
-
-	if sl.tail.Item != pinf {
-		panic(fmt.Errorf("tail is not pinf"))
 	}
 
 	for i := 0; i < sl.level; i++ {
 		pv := sl.head.Item
 		levelSize := 0
-		for p := sl.head.forward[i]; p != nil; p = p.forward[i] {
+		for p := get_forward(sl.head, i); p != nil; p = get_forward(p, i) {
 			if less(p.Item, pv) {
 				panic(fmt.Errorf("wrong order: %#v > %#v", pv, p.Item))
 			}
 			pv = p.Item
 			levelSize++
 		}
-		if pv != pinf {
-			panic(fmt.Errorf("level %d not ends with tail", i))
-		}
 		if i == 0 {
-			if levelSize != sl.len+1 {
-				panic(fmt.Errorf("bad len: %d, should be %d", sl.len, levelSize-1))
+			if levelSize != sl.len {
+				panic(fmt.Errorf("bad len: %d, should be %d", sl.len, levelSize))
 			}
 		} else {
-			if levelSize > sl.len+1 {
-				panic(fmt.Errorf("bad len: %d, should be larger than or equal to %d", sl.len, levelSize-1))
+			if levelSize > sl.len {
+				panic(fmt.Errorf("bad len: %d, should be larger than or equal to %d", sl.len, levelSize))
 			}
 		}
 	}
