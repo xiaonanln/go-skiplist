@@ -14,7 +14,7 @@ Current implementation of SkipList has comparable performance with LLRB, except 
 which SkipList outperforms LLRB dramatically.
 
 **LLRB:**
-```bash
+```
 goos: linux
 goarch: amd64
 pkg: github.com/petar/GoLLRB/llrb
@@ -24,7 +24,7 @@ BenchmarkDeleteMin-32    	 2000000	       800 ns/op
 ```
 
 **SkipList:**  
-```bash
+```
 goos: linux
 goarch: amd64
 pkg: github.com/xiaonanln/go-skiplist
@@ -38,7 +38,7 @@ BenchmarkDeleteMin-32      	50000000	        27.4 ns/op
 With significant optimization overhead, the current RAM consumption of SkipList `(p=0.25)` is more or less same with LLRB. 
 
 **LLRB:**
-```bash
+```
 Showing nodes accounting for 24.62MB, 99.63% of 24.71MB total
 Dropped 62 nodes (cum <= 0.12MB)
       flat  flat%   sum%        cum   cum%
@@ -49,7 +49,7 @@ Dropped 62 nodes (cum <= 0.12MB)
 ```
 
 **SkipList with probability `p = 0.25`:**
-```bash
+```
 Showing nodes accounting for 23.07MB, 98.96% of 23.31MB total
 Dropped 71 nodes (cum <= 0.12MB)
       flat  flat%   sum%        cum   cum%
