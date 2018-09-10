@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	memoryTestSize = 1000000
+	memoryTestSize = 100000
 )
 
 func TestMemorySkipList(t *testing.T) {

@@ -1,6 +1,7 @@
 package skiplist
 
 import (
+	"math/rand"
 	"time"
 )
 
@@ -49,9 +50,10 @@ func random() uint32 {
 //	return l
 //}
 
+// TODO: use faster random ?
 func randomLevel(maxLevel int) int {
 	l := 1
-	for l < maxLevel && random()%1000 < 400 {
+	for l < maxLevel && rand.Float64() < 0.5 {
 		l++
 	}
 	return l

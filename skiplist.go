@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	validate = false // turn on for debug only
+	validate = false // turn on for debug only, will run very slowly
 	// DefaultMaxLevel is the default max level. 32 should be large enough for most cases.
 	DefaultMaxLevel = 32
 )
@@ -30,10 +30,10 @@ type Node struct {
 }
 
 func newNode(item Item, level int) (node *Node) {
-		node = &Node{
-			Item:    item,
-			forward: make([]*Node, level),
-		}
+	node = &Node{
+		Item:    item,
+		forward: make([]*Node, level),
+	}
 	return
 }
 
@@ -47,7 +47,6 @@ type SkipList struct {
 	level    int
 	len      int
 	head     *Node
-	tail     *Node
 }
 
 // New creates a new SkipList with max level = 32, which should be enough for most cases.
@@ -60,10 +59,6 @@ func NewMaxLevel(maxLevel int) *SkipList {
 		maxLevel: maxLevel,
 		level:    1,
 		head:     newNode(ninf, 1),
-		tail:     newNode(pinf, 1),
-	}
-	for i := 0; i < sl.level; i++ {
-		sl.head.forward[i] = sl.tail
 	}
 	sl.validate()
 	return sl
@@ -74,23 +69,30 @@ func NewMaxLevel(maxLevel int) *SkipList {
 func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 	update := make([]*Node, sl.level)
 	p := sl.head
+	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		for less(p.forward[level].Item, item) {
-			p = p.forward[level]
+		n := p.forward[level]
+		for n != end {
+			if n.Item.Less(item) {
+				p = n
+				n = p.forward[level]
+			} else {
+				end = n
+				break
+			}
 		}
 		update[level] = p
 	}
 
 	// insert after p
 	n := p.forward[0]
-	if less(item, n.Item) {
+	if n == nil || item.Less(n.Item) {
 		// insert before n
 		newLevel := sl.randomLevel()
 		if newLevel > sl.level {
 			newLevel = sl.level + 1
 			sl.level = newLevel
-			sl.head.forward = append(sl.head.forward, sl.tail)
-			sl.tail.forward = append(sl.tail.forward, nil)
+			sl.head.forward = append(sl.head.forward, nil)
 			update = append(update, sl.head)
 		}
 
@@ -117,9 +119,17 @@ func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 func (sl *SkipList) InsertNoReplace(item Item) {
 	update := make([]*Node, sl.level)
 	p := sl.head
+	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		for less(p.forward[level].Item, item) {
-			p = p.forward[level]
+		n := p.forward[level]
+		for n != end {
+			if n.Item.Less(item) {
+				p = n
+				n = p.forward[level]
+			} else {
+				end = n
+				break
+			}
 		}
 		update[level] = p
 	}
@@ -130,8 +140,7 @@ func (sl *SkipList) InsertNoReplace(item Item) {
 	if newLevel > sl.level {
 		newLevel = sl.level + 1
 		sl.level = newLevel
-		sl.head.forward = append(sl.head.forward, sl.tail)
-		sl.tail.forward = append(sl.tail.forward, nil)
+		sl.head.forward = append(sl.head.forward, nil)
 		update = append(update, sl.head)
 	}
 	newNode := newNode(item, newLevel)
@@ -162,13 +171,22 @@ func (sl *SkipList) Level() int {
 // Has returns true if the skiplist contains an element whose order is the same as that of key.
 func (sl *SkipList) Has(item Item) bool {
 	p := sl.head
+	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		for less(p.forward[level].Item, item) {
-			p = p.forward[level]
+		n := p.forward[level]
+		for n != end {
+			if n.Item.Less(item) {
+				p = n
+				n = p.forward[level]
+			} else {
+				end = n
+				break
+			}
 		}
 	}
+
 	n := p.forward[0]
-	return !less(item, n.Item)
+	return n != nil && !item.Less(n.Item)
 }
 
 // Delete deletes an item from the skiplist whose key equals key.
@@ -176,16 +194,24 @@ func (sl *SkipList) Has(item Item) bool {
 func (sl *SkipList) Delete(item Item) Item {
 	update := make([]*Node, sl.level)
 	p := sl.head
+	var end *Node
 	for level := sl.level - 1; level >= 0; level-- {
-		for less(p.forward[level].Item, item) {
-			p = p.forward[level]
+		n := p.forward[level]
+		for n != end {
+			if n.Item.Less(item) {
+				p = n
+				n = p.forward[level]
+			} else {
+				end = n
+				break
+			}
 		}
 		update[level] = p
 	}
 
 	// delete n if n matches
 	n := p.forward[0]
-	if less(item, n.Item) {
+	if n == nil || item.Less(n.Item) {
 		// item not found
 		return nil
 	}
@@ -218,7 +244,7 @@ func (sl *SkipList) DeleteMin() Item {
 	head := sl.head
 	n := head.forward[0]
 	if validate {
-		if n == sl.tail {
+		if n == nil {
 			panic(fmt.Errorf("bad skiplist"))
 		}
 	}
@@ -250,16 +276,8 @@ func (sl *SkipList) validate() {
 		panic(fmt.Errorf("wrong head.forward level: %d, should be %d", len(sl.head.forward), sl.level))
 	}
 
-	if len(sl.tail.forward) != sl.level {
-		panic(fmt.Errorf("wrong tail.forward level"))
-	}
-
 	if sl.head.Item != ninf {
 		panic(fmt.Errorf("head is not ninf"))
-	}
-
-	if sl.tail.Item != pinf {
-		panic(fmt.Errorf("tail is not pinf"))
 	}
 
 	for i := 0; i < sl.level; i++ {
@@ -272,16 +290,13 @@ func (sl *SkipList) validate() {
 			pv = p.Item
 			levelSize++
 		}
-		if pv != pinf {
-			panic(fmt.Errorf("level %d not ends with tail", i))
-		}
 		if i == 0 {
-			if levelSize != sl.len+1 {
-				panic(fmt.Errorf("bad len: %d, should be %d", sl.len, levelSize-1))
+			if levelSize != sl.len {
+				panic(fmt.Errorf("bad len: %d, should be %d", sl.len, levelSize))
 			}
 		} else {
-			if levelSize > sl.len+1 {
-				panic(fmt.Errorf("bad len: %d, should be larger than or equal to %d", sl.len, levelSize-1))
+			if levelSize > sl.len {
+				panic(fmt.Errorf("bad len: %d, should be larger than or equal to %d", sl.len, levelSize))
 			}
 		}
 	}

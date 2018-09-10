@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	TestSize = 1000000
+	TestSize = 100000
 )
 
 func TestFuzzyLLRB(t *testing.T) {
