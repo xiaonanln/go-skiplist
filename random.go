@@ -7,7 +7,7 @@ import (
 // TODO: use faster random ?
 func randomLevel(maxLevel int) int {
 	l := 1
-	for l < maxLevel && rand.Float32() < 0.5 {
+	for l < maxLevel && rand.Float32() < 0.25 {
 		l++
 	}
 	return l
