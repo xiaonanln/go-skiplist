@@ -51,7 +51,7 @@ func random() uint32 {
 
 func randomLevel(maxLevel int) int {
 	l := 1
-	for l < maxLevel && random()%100 < 50 {
+	for l < maxLevel && random()%1000 < 400 {
 		l++
 	}
 	return l

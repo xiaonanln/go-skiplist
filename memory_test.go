@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	testSize = 10000000
+	memoryTestSize = 1000000
 )
 
 func TestMemorySkipList(t *testing.T) {
@@ -17,12 +17,10 @@ func TestMemorySkipList(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-
 	tree := New()
-	for i := 0; i < testSize; i++ {
+	for i := 0; i < memoryTestSize; i++ {
 		tree.ReplaceOrInsert(Int(i))
 	}
-
 	pprof.WriteHeapProfile(fd)
 }
 
@@ -33,7 +31,7 @@ func TestMemoryLLRB(t *testing.T) {
 	}
 
 	tree := llrb.New()
-	for i := 0; i < testSize; i++ {
+	for i := 0; i < memoryTestSize; i++ {
 		tree.ReplaceOrInsert(llrb.Int(i))
 	}
 
