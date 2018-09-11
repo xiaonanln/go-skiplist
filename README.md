@@ -1,4 +1,6 @@
-# go-skiplist
+# go-skiplist [![GoDoc](https://godoc.org/github.com/xiaonanln/go-skiplist?status.png)](https://godoc.org/github.com/xiaonanln/go-skiplist)
+
+
 Skip List implementation in Golang.
 
 ![https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Skip_list.svg/470px-Skip_list.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Skip_list.svg/470px-Skip_list.svg.png)
@@ -16,7 +18,7 @@ Current implementation of SkipList has comparable performance with LLRB, except 
 which SkipList outperforms LLRB dramatically.
 
 **LLRB:**
-```bash
+```
 goos: linux
 goarch: amd64
 pkg: github.com/petar/GoLLRB/llrb
@@ -26,7 +28,7 @@ BenchmarkDeleteMin-32    	 2000000	       800 ns/op
 ```
 
 **SkipList:**  
-```bash
+```
 goos: linux
 goarch: amd64
 pkg: github.com/xiaonanln/go-skiplist
@@ -35,12 +37,22 @@ BenchmarkDelete-32         	 3000000	       547 ns/op
 BenchmarkDeleteMin-32      	50000000	        27.4 ns/op
 ```
 
+**Fuzzy Tests**
+```
+=== RUN   TestFuzzyLLRB
+--- PASS: TestFuzzyLLRB (19.90s)
+=== RUN   TestFuzzySkipList
+--- PASS: TestFuzzySkipList (12.03s)
+=== RUN   TestFuzzyHangduSkipList from github.com/huandu/skiplist
+--- PASS: TestFuzzyHangduSkipList (12.68s)
+```
+
 ## RAM consumption
 
-With significant optimization overhead, the current RAM consumption of SkipList `(p=0.25)` is more or less same with LLRB. 
+With significant optimization effort, the current RAM consumption of SkipList `(p=0.25)` is more or less same with LLRB. 
 
 **LLRB:**
-```bash
+```
 Showing nodes accounting for 24.62MB, 99.63% of 24.71MB total
 Dropped 62 nodes (cum <= 0.12MB)
       flat  flat%   sum%        cum   cum%
@@ -51,7 +63,7 @@ Dropped 62 nodes (cum <= 0.12MB)
 ```
 
 **SkipList with probability `p = 0.25`:**
-```bash
+```
 Showing nodes accounting for 23.07MB, 98.96% of 23.31MB total
 Dropped 71 nodes (cum <= 0.12MB)
       flat  flat%   sum%        cum   cum%
