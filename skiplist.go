@@ -11,6 +11,7 @@ const (
 	DefaultMaxLevel = 32
 )
 
+// Item is the interface that can be put to SkipList
 type Item interface {
 	Less(other Item) bool
 }
@@ -25,38 +26,29 @@ func less(x, y Item) bool {
 	return x.Less(y)
 }
 
-type Node struct {
+type node struct {
 	Item
 }
 
-func get_forward(node *Node, level int) *Node {
-	return *(**Node)(unsafe.Pointer(uintptr(unsafe.Pointer(node)) + unsafe.Sizeof(Node{}) + uintptr(level)*unsafe.Sizeof((*Node)(nil))))
+func get_forward(n *node, level int) *node {
+	return *(**node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) + unsafe.Sizeof(node{}) + uintptr(level)*unsafe.Sizeof((*node)(nil))))
 }
 
-func set_forward(node *Node, level int, fn *Node) {
-	*(**Node)(unsafe.Pointer(uintptr(unsafe.Pointer(node)) + unsafe.Sizeof(Node{}) + uintptr(level)*unsafe.Sizeof((*Node)(nil)))) = fn
+func set_forward(n *node, level int, fn *node) {
+	*(**node)(unsafe.Pointer(uintptr(unsafe.Pointer(n)) + unsafe.Sizeof(node{}) + uintptr(level)*unsafe.Sizeof((*node)(nil)))) = fn
 }
 
-//
-//func _newNodeOld(item Item, level int) (node *Node) {
-//	node = &Node{
-//		Item:    item,
-//		forward: make([]*Node, level),
-//	}
-//	return
-//}
-//
-
-func releaseNode(node *Node) (item Item) {
-	item = node.Item
+func releaseNode(n *node) (item Item) {
+	item = n.Item
 	return
 }
 
+// SkipList is the type of skip list
 type SkipList struct {
 	maxLevel int
 	level    int
 	len      int
-	head     *Node
+	head     *node
 }
 
 // New creates a new SkipList with max level = 32, which should be enough for most cases.
@@ -83,9 +75,9 @@ func NewMaxLevel(maxLevel int) *SkipList {
 // ReplaceOrInsert inserts item into the skiplist. If an existing
 // element has the same order, it is removed from the skiplist and returned.
 func (sl *SkipList) ReplaceOrInsert(item Item) Item {
-	update := make([]*Node, sl.level)
+	update := make([]*node, sl.level)
 	p := sl.head
-	var end *Node
+	var end *node
 	for level := sl.level - 1; level >= 0; level-- {
 		n := get_forward(p, level)
 		for n != end {
@@ -133,9 +125,9 @@ func (sl *SkipList) ReplaceOrInsert(item Item) Item {
 // InsertNoReplace inserts item into the skiplist. If an existing
 // element has the same order, both elements remain in the skiplist.
 func (sl *SkipList) InsertNoReplace(item Item) {
-	update := make([]*Node, sl.level)
+	update := make([]*node, sl.level)
 	p := sl.head
-	var end *Node
+	var end *node
 	for level := sl.level - 1; level >= 0; level-- {
 		n := get_forward(p, level)
 		for n != end {
@@ -187,7 +179,7 @@ func (sl *SkipList) Level() int {
 // Has returns true if the skiplist contains an element whose order is the same as that of key.
 func (sl *SkipList) Has(item Item) bool {
 	p := sl.head
-	var end *Node
+	var end *node
 	for level := sl.level - 1; level >= 0; level-- {
 		n := get_forward(p, level)
 		for n != end {
@@ -208,9 +200,9 @@ func (sl *SkipList) Has(item Item) bool {
 // Delete deletes an item from the skiplist whose key equals key.
 // The deleted item is return, otherwise nil is returned.
 func (sl *SkipList) Delete(item Item) Item {
-	update := make([]*Node, sl.level)
+	update := make([]*node, sl.level)
 	p := sl.head
-	var end *Node
+	var end *node
 	for level := sl.level - 1; level >= 0; level-- {
 		n := get_forward(p, level)
 		for n != end {

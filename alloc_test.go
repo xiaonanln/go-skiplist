@@ -6,7 +6,7 @@ import (
 )
 
 func TestAlloc(t *testing.T) {
-	println("Node size", unsafe.Sizeof(Node{}))
+	println("node size", unsafe.Sizeof(node{}))
 	println("l1node size", unsafe.Sizeof(l1node{}))
 }
 
@@ -32,13 +32,13 @@ func BenchmarkAllocNode(b *testing.B) {
 
 type oldnode struct {
 	item    Item
-	forward []*Node
+	forward []*node
 }
 
 func oldAllocNode(item Item, level int) *oldnode {
 	return &oldnode{
 		item:    item,
-		forward: make([]*Node, level),
+		forward: make([]*node, level),
 	}
 }
 

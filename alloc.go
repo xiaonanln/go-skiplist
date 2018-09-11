@@ -9,201 +9,201 @@ const (
 
 type l1node struct {
 	item    Item
-	forward [1]*Node
+	forward [1]*node
 }
 
 type l2node struct {
 	item    Item
-	forward [2]*Node
+	forward [2]*node
 }
 
 type l3node struct {
 	item    Item
-	forward [3]*Node
+	forward [3]*node
 }
 
 type l4node struct {
 	item    Item
-	forward [4]*Node
+	forward [4]*node
 }
 
 type l5node struct {
 	item    Item
-	forward [5]*Node
+	forward [5]*node
 }
 
 type l6node struct {
 	item    Item
-	forward [6]*Node
+	forward [6]*node
 }
 
 type l7node struct {
 	item    Item
-	forward [7]*Node
+	forward [7]*node
 }
 
 type l8node struct {
 	item    Item
-	forward [8]*Node
+	forward [8]*node
 }
 
 type l9node struct {
 	item    Item
-	forward [9]*Node
+	forward [9]*node
 }
 
 type l10node struct {
 	item    Item
-	forward [10]*Node
+	forward [10]*node
 }
 
 type l11node struct {
 	item    Item
-	forward [11]*Node
+	forward [11]*node
 }
 
 type l12node struct {
 	item    Item
-	forward [12]*Node
+	forward [12]*node
 }
 
 type l13node struct {
 	item    Item
-	forward [13]*Node
+	forward [13]*node
 }
 
 type l14node struct {
 	item    Item
-	forward [14]*Node
+	forward [14]*node
 }
 
 type l15node struct {
 	item    Item
-	forward [15]*Node
+	forward [15]*node
 }
 
 type l16node struct {
 	item    Item
-	forward [16]*Node
+	forward [16]*node
 }
 
 type l17node struct {
 	item    Item
-	forward [17]*Node
+	forward [17]*node
 }
 
 type l18node struct {
 	item    Item
-	forward [18]*Node
+	forward [18]*node
 }
 
 type l19node struct {
 	item    Item
-	forward [19]*Node
+	forward [19]*node
 }
 
 type l20node struct {
 	item    Item
-	forward [20]*Node
+	forward [20]*node
 }
 
 type l21node struct {
 	item    Item
-	forward [21]*Node
+	forward [21]*node
 }
 
 type l22node struct {
 	item    Item
-	forward [22]*Node
+	forward [22]*node
 }
 
 type l23node struct {
 	item    Item
-	forward [23]*Node
+	forward [23]*node
 }
 
 type l24node struct {
 	item    Item
-	forward [24]*Node
+	forward [24]*node
 }
 
 type l25node struct {
 	item    Item
-	forward [25]*Node
+	forward [25]*node
 }
 
 type l26node struct {
 	item    Item
-	forward [26]*Node
+	forward [26]*node
 }
 
 type l27node struct {
 	item    Item
-	forward [27]*Node
+	forward [27]*node
 }
 
 type l28node struct {
 	item    Item
-	forward [28]*Node
+	forward [28]*node
 }
 
 type l29node struct {
 	item    Item
-	forward [29]*Node
+	forward [29]*node
 }
 
 type l30node struct {
 	item    Item
-	forward [30]*Node
+	forward [30]*node
 }
 
 type l31node struct {
 	item    Item
-	forward [31]*Node
+	forward [31]*node
 }
 
 type l32node struct {
 	item    Item
-	forward [32]*Node
+	forward [32]*node
 }
 type l33node struct {
 	item    Item
-	forward [33]*Node
+	forward [33]*node
 }
 
 type l34node struct {
 	item    Item
-	forward [34]*Node
+	forward [34]*node
 }
 
 type l35node struct {
 	item    Item
-	forward [35]*Node
+	forward [35]*node
 }
 
 type l36node struct {
 	item    Item
-	forward [36]*Node
+	forward [36]*node
 }
 
 type l37node struct {
 	item    Item
-	forward [37]*Node
+	forward [37]*node
 }
 
 type l38node struct {
 	item    Item
-	forward [38]*Node
+	forward [38]*node
 }
 
 type l39node struct {
 	item    Item
-	forward [39]*Node
+	forward [39]*node
 }
 
 type l40node struct {
 	item    Item
-	forward [40]*Node
+	forward [40]*node
 }
 
 var (
@@ -251,8 +251,8 @@ var (
 	}
 )
 
-func allocNode(item Item, level int) *Node {
-	node := (*Node)(allocFuncs[level-1]())
+func allocNode(item Item, level int) *node {
+	node := (*node)(allocFuncs[level-1]())
 	node.Item = item
 	return node
 }

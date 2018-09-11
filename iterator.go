@@ -3,7 +3,7 @@ package skiplist
 type ItemIterator func(i Item) bool
 
 func (sl *SkipList) Ascend(iterator ItemIterator) {
-	var end *Node
+	var end *node
 	for n := get_forward(sl.head, 0); n != end; n = get_forward(n, 0) {
 		if !iterator(n.Item) {
 			return
@@ -13,7 +13,7 @@ func (sl *SkipList) Ascend(iterator ItemIterator) {
 
 func (sl *SkipList) AscendRange(greaterOrEqual, lessThan Item, iterator ItemIterator) {
 	p := sl.head
-	var end *Node
+	var end *node
 	for level := sl.level - 1; level >= 0; level-- {
 		n := get_forward(p, level)
 		for n != end {
@@ -39,7 +39,7 @@ func (sl *SkipList) AscendRange(greaterOrEqual, lessThan Item, iterator ItemIter
 // pivot in ascending order. It will stop whenever the iterator returns false.
 func (sl *SkipList) AscendGreaterOrEqual(pivot Item, iterator ItemIterator) {
 	p := sl.head
-	var end *Node
+	var end *node
 	for level := sl.level - 1; level >= 0; level-- {
 		n := get_forward(p, level)
 		for n != end {

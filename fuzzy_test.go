@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TestSize = 10000000
+	TestSize = 1000000
 )
 
 type slIntInt struct {
