@@ -1,6 +1,8 @@
 # go-skiplist
 Skip List implementation in Golang.
 
+![https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Skip_list.svg/470px-Skip_list.svg.png](https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Skip_list.svg/470px-Skip_list.svg.png)
+
 ## Installation
 `go get github.com/xiaonanln/go-skiplist`
 
