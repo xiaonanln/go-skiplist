@@ -11,7 +11,7 @@ const (
 	DefaultMaxLevel = 32
 )
 
-// Item is the interface that can be put to SkipList
+// Item is the interface that all SkipList items should implement
 type Item interface {
 	Less(other Item) bool
 }
@@ -56,6 +56,7 @@ func New() *SkipList {
 	return NewMaxLevel(DefaultMaxLevel)
 }
 
+// NewMaxLevel creates a new SkipList with specified max level. Max level's value should be in range 1 ~ `MaxLevelLimit`
 func NewMaxLevel(maxLevel int) *SkipList {
 	if maxLevel > MaxLevelLimit {
 		maxLevel = MaxLevelLimit
@@ -169,11 +170,6 @@ func (sl *SkipList) Len() int {
 // MaxLevel returns the max level of the skiplist
 func (sl *SkipList) MaxLevel() int {
 	return sl.maxLevel
-}
-
-// Level returns the current level of the skiplist
-func (sl *SkipList) Level() int {
-	return sl.level
 }
 
 // Has returns true if the skiplist contains an element whose order is the same as that of key.
